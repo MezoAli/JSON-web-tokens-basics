@@ -15,10 +15,21 @@ const login = async (req, res) => {
 };
 
 const dashboard = async (req, res) => {
-  const number = Math.floor(Math.random() * 100);
-  res
-    .status(200)
-    .json({ msg: "hello moutaz ali", secret: `your number is ${number}` });
+  const { authorization } = req.headers;
+  const [_, token] = authorization.split(" ");
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    throw new CustomError("no token found", 401);
+  }
+  try {
+    const data = jwt.verify(token, process.env.JWT_SECRET);
+    const number = Math.floor(Math.random() * 100);
+    res.status(200).json({
+      msg: `hello ${data.username}`,
+      secret: `your number is ${number}`,
+    });
+  } catch (error) {
+    throw new CustomError("not authorized to access that route data", 401);
+  }
 };
 
 module.exports = {
